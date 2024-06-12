@@ -7,6 +7,8 @@ import java.util.StringTokenizer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import util.DataUtils;
+import util.IOUtils;
 
 public class RequestHandler extends Thread {
     private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
@@ -26,16 +28,34 @@ public class RequestHandler extends Thread {
             BufferedReader bf = new BufferedReader(new InputStreamReader(in));
             String line = bf.readLine();
 
-            if (line != null) {
-                StringTokenizer st = new StringTokenizer(line);
+            if (!"".equals(line) && line != null) {
+                // HTML 페이지 나타내기
+                if (line.matches(".*.html.*")) {
+                    DataOutputStream dos = new DataOutputStream(out);
+                    String url = IOUtils.urlData(line);
+                    log.debug("url : {}", url);
 
-                while (st.hasMoreTokens()) {
-                    String s = st.nextToken();
-                    if (s.matches(".*.html.*")) {
-                        DataOutputStream dos = new DataOutputStream(out);
-                        byte[] body = Files.readAllBytes(new File("./webapp" + s).toPath());
-                        response200Header(dos, body.length);
-                        responseBody(dos, body);
+                    byte[] body = Files.readAllBytes(new File("./webapp" + url).toPath());
+                    response200Header(dos, body.length);
+                    responseBody(dos, body);
+                // create user
+                } else if (line.matches(".*/user/create.*")) {
+                    String contentsLength = "0";
+
+                    while (true) {
+                        String read = bf.readLine();
+                        if (read != null && read.contains("Content-Length")) {
+                            contentsLength = IOUtils.bodyData(read);
+                            log.debug("contents-length : {}", contentsLength);
+                        }
+
+                        if (read.length() == 0) {
+                            String request = IOUtils.readData(bf, Integer.parseInt(contentsLength));
+                            log.debug("request : {}", request);
+
+                            DataUtils.createUser(request);
+                            break;
+                        }
                     }
                 }
             }

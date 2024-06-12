@@ -17,4 +17,24 @@ public class IOUtils {
         br.read(body, 0, contentLength);
         return String.copyValueOf(body);
     }
+
+    /**
+     * URL 반환
+     * @param line
+     * @return
+     */
+    public static String urlData(String line) {
+        String[] url = line.split(" ");
+        return url[1];
+    }
+
+    /**
+     * key value -> value값 반환
+     * @param line
+     * @return
+     */
+    public static String bodyData(String line) {
+        String[] l = line.replaceAll(" ", "").split(":");
+        return l[1];
+    }
 }
