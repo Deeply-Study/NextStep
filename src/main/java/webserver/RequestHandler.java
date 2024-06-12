@@ -33,9 +33,10 @@ public class RequestHandler extends Thread {
             BufferedReader br = new BufferedReader(isr);
 
             String line = br.readLine();
-            String url = WEB_ROOT + line.split(" ")[1];
+            String requestUrl = line.split(" ")[1];
+            String rootUrl = WEB_ROOT + requestUrl;
 
-            File file = new File(url);
+            File file = new File(rootUrl);
             byte[] body = Files.readAllBytes(file.toPath());
 
             DataOutputStream dos = new DataOutputStream(out);
