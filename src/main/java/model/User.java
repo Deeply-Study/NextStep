@@ -39,16 +39,8 @@ public class User {
         return "User [userId=" + userId + ", password=" + password + ", name=" + name + ", email=" + email + "]";
     }
 
-    public User signUp(String queryString) {
-        String[] params = queryString.split("&");
-        Map<String, String> informations = new HashMap<>();
-
-        for (int i = 0; i < params.length; i++) {
-            int equalIdx = params[i].indexOf("=");
-            informations.put(params[i].substring(0, equalIdx), params[i].substring(equalIdx+1));
-        }
-
-        User user = new User(informations.get("userId"), informations.get("password"), informations.get("name"), informations.get("email"));
+    public User signUp(Map<String, String> queryParams) {
+        User user = new User(queryParams.get("userId"), queryParams.get("password"), queryParams.get("name"), queryParams.get("email"));
 
         return user;
     }
