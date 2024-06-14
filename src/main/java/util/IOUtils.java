@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 
 public class IOUtils {
+    public IOUtils() {}
     /**
      * @param BufferedReader는
      *            Request Body를 시작하는 시점이어야

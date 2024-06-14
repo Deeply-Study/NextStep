@@ -1,13 +1,20 @@
 package util;
 
+import static util.Constants.EQUAL_SYMBOL;
+import static util.Constants.PARAM_SEPARATOR;
+
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
+import model.User;
 
 public class HttpRequestUtils {
+    public HttpRequestUtils() {}
+
     /**
      * @param queryString은
      *            URL에서 ? 이후에 전달되는 field1=value1&field2=value2 형식임
@@ -105,5 +112,25 @@ public class HttpRequestUtils {
         public String toString() {
             return "Pair [key=" + key + ", value=" + value + "]";
         }
+    }
+
+    // 이하 직접 구현한 함수입니다.
+
+    /**
+     * 요청 파라미터에서 key, value 분리
+     * @param requestParams
+     *
+     * @return key, value가 분리된 요청 파라미터
+     */
+    public Map<String, String> parseRequestParams(String requestParams) {
+        String[] pairs = requestParams.split(PARAM_SEPARATOR);
+        Map<String, String> params = new HashMap<>();
+
+        for (int i = 0; i < pairs.length; i++) {
+            int equalIdx = pairs[i].indexOf(EQUAL_SYMBOL);
+            params.put(pairs[i].substring(0, equalIdx), pairs[i].substring(equalIdx+1));
+        }
+
+        return params;
     }
 }
