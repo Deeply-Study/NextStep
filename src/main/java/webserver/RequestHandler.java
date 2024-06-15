@@ -3,6 +3,7 @@ package webserver;
 import static util.Constants.CONTENTE_LENGTH;
 import static util.Constants.HTTP_HEADER_FIELD_SEPARATOR;
 import static util.Constants.QUERY_STRING_PREFIX;
+import static util.Constants.SIGN_UP_PATH;
 import static util.Constants.WEB_ROOT;
 
 import java.io.BufferedReader;
@@ -42,23 +43,35 @@ public class RequestHandler extends Thread {
         try (InputStream is = connection.getInputStream(); OutputStream out = connection.getOutputStream()) {
             InputStreamReader isr = new InputStreamReader(is);
             BufferedReader br = new BufferedReader(isr);
-
-            String startLine = getStartLine(br);
-            String requestUrl = getRequestTarget(startLine);
-            Map<String, String> httpHeader = getHeader(br);
-
-            String httpBody = ioUtils.readData(br, Integer.parseInt(httpHeader.get(CONTENTE_LENGTH)));
-            user.signUp(httpRequestUtils.parseRequestParams(httpBody));
-
-            String rootUrl = WEB_ROOT + requestUrl;
-
-            File rootFile = new File(rootUrl);
-            byte[] body = Files.readAllBytes(rootFile.toPath());
-
             DataOutputStream dos = new DataOutputStream(out);
 
-            response200Header(dos, body.length);
-            responseBody(dos, body);
+            // HTTP Start Line
+            String startLine = getStartLine(br);
+            String requestMethod = getRequestMethod(startLine);
+            String requestTarget = getRequestTarget(startLine);
+
+            // HTTP Header
+            Map<String, String> httpHeader = getHeader(br);
+
+            // file
+            String targetPath = WEB_ROOT + requestTarget;
+            File targetFile = new File(targetPath);
+
+            if (requestMethod.equals("POST")) {
+                String httpBody = ioUtils.readData(br, Integer.parseInt(httpHeader.get(CONTENTE_LENGTH)));
+
+                if (requestTarget.startsWith(SIGN_UP_PATH)) {
+                    user.signUp(httpRequestUtils.parseRequestParams(httpBody));
+
+                    requestTarget = "/index.html";
+                    response302Header(dos, requestTarget);
+                }
+            }
+
+            byte[] responseBody = Files.readAllBytes(targetFile.toPath());
+
+            response200Header(dos, responseBody.length);
+            responseBody(dos, responseBody);
         } catch (IOException e) {
             log.error(e.getMessage());
         }
@@ -72,6 +85,10 @@ public class RequestHandler extends Thread {
      */
     private String getStartLine(BufferedReader br) throws IOException {
         return br.readLine();
+    }
+
+    private String getRequestMethod(String startLine) {
+        return startLine.split(" ")[0];
     }
 
     /**
@@ -115,6 +132,16 @@ public class RequestHandler extends Thread {
         }
 
         return sb.toString();
+    }
+
+    private void response302Header(DataOutputStream dos, String url) {
+        try {
+            dos.writeBytes("HTTP/1.1 302 Found \r\n");
+            dos.writeBytes("Location: " + url + " \r\n");
+            dos.writeBytes("\r\n");
+        } catch (IOException e) {
+            log.error(e.getMessage());
+        }
     }
 
     private void response200Header(DataOutputStream dos, int lengthOfBodyContent) {
