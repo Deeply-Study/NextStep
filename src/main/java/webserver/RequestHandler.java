@@ -19,6 +19,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import model.User;
 import util.IOUtils;
 
 public class RequestHandler extends Thread {
@@ -65,8 +66,7 @@ public class RequestHandler extends Thread {
                     }
                 }
             }
-
-            System.out.println(headers);
+            log.debug("Request Header : {}", headers);
             if (requestLine != null) {
                 String[] methodUrl = requestLine.split(" ");
                 String method = methodUrl[0];
@@ -81,57 +81,13 @@ public class RequestHandler extends Thread {
                     } else if (url.equals("/index.html")) {
                         handleIndexRequest(out, "/index.html");
                     } else if (url.startsWith("/user/create")) {
-                        handleUserCreate(url);
+                        int contentLength = headers.size();
+                        handleGetUserCreate(url, contentLength, out);
                     }
                 } else if (method.equals("POST") && url.equals("/user/create")) {
-                    IOUtils ioUtils = new IOUtils();
-                    //이어서 하기
+                    handlePostUserCreate(buffer, headers, out);
                 }
             }
-            // BufferedReader buffer = new BufferedReader(new InputStreamReader(in));
-            // String readLine;
-            // while((readLine = buffer.readLine()) != null) {
-            //     if (readLine.startsWith("GET /index.html")) {
-            //         String[] methodUrl = readLine.split(" ");
-            //         String filePath = methodUrl[1].equals("/index.html") ? "/index.html" : methodUrl[1];
-            //
-            //         String indexPath = "/Users/proxy/Next-Step/webapp" + filePath;
-            //         File file = new File(indexPath);
-            //         if (file.exists()) {
-            //             Path path = file.toPath();
-            //             byte[] bytes = Files.readAllBytes(path);
-            //             DataOutputStream dos = new DataOutputStream(out);
-            //             response200Header(dos, bytes.length);
-            //             responseBody(dos, bytes);
-            //         }
-            //     } else if(readLine.startsWith("GET /user/create")) {
-            //         String[] methodUrl = readLine.split(" ");
-            //         System.out.println(Arrays.toString(methodUrl));
-            //         //[GET, /user/create?userId=javajigi&password=password&name=JaeSung&email=javajigi%40slipp.net, HTTP/1.1]
-            //         String[] urlSplit = methodUrl[1].split("\\?");
-            //         System.out.println(Arrays.toString(urlSplit));
-            //         //[/user/create, userId=javajigi&password=password&name=JaeSung&email=javajigi%40slipp.net]
-            //         String[] params = urlSplit[1].split("&");
-            //         System.out.println(Arrays.toString(params));
-            //         //[userId=javajigi, password=password, name=JaeSung, email=javajigi%40slipp.net]
-            //         Map<String, String> param = new HashMap<>() {
-            //             {
-            //                 for(String str : params) {
-            //                     put(str.split("=")[0], str.split("=")[1]);
-            //                 }
-            //             }
-            //         };//{password=password, name=JaeSung, userId=javajigi, email=javajigi%40slipp.net}
-            //         System.out.println(param);
-            //     } else if(readLine.startsWith("POST /user/create")) {
-            //         IOUtils ioUtils = new IOUtils();
-            //
-            //     } else {
-            //         DataOutputStream dos = new DataOutputStream(out);
-            //         byte[] body = "Hello World".getBytes();
-            //         response200Header(dos, body.length);
-            //         responseBody(dos, body);
-            //     }
-            // }
         } catch (IOException e) {
             log.error(e.getMessage());
         }
@@ -149,10 +105,11 @@ public class RequestHandler extends Thread {
         }
     }
 
-    private void handleUserCreate(String url) {
+    private void handleGetUserCreate(String url, int contentLength, OutputStream out) throws IOException {
         String[] urlSplit = url.split("\\?");
         if (urlSplit.length > 1) {
             String[] params = urlSplit[1].split("&");
+
             Map<String, String> param = new HashMap<>();
             for (String str : params) {
                 String[] keyValue = str.split("=");
@@ -160,8 +117,46 @@ public class RequestHandler extends Thread {
                     param.put(keyValue[0], keyValue[1]);
                 }
             }
-            System.out.println(param);
+            log.debug(param.toString());
+
+            User user = new User();
+            user.setUserId(param.get("userId"));
+            user.setName(param.get("name"));
+            user.setEmail(param.get("email"));
+            user.setPassword(param.get("password"));
+            log.debug(user.toString());
+
+            String responseBody = "User created: " + user.getUserId();
+            byte[] body = responseBody.getBytes();
+
+            DataOutputStream dos = new DataOutputStream(out);
+            response200Header(dos, body.length);
+            responseBody(dos, body);
         }
+    }
+
+    private void handlePostUserCreate(BufferedReader buffer, Map<String, String> headers, OutputStream out) throws IOException {
+        int contentLength = Integer.parseInt(headers.get("Content-Length"));
+        String body = IOUtils.readData(buffer, contentLength);
+
+        Map<String, String> param = new HashMap<>();
+        String[] pairs = body.split("&");
+        for (String pair : pairs) {
+            String[] keyValue = pair.split("=");
+            if (keyValue.length == 2) {
+                param.put(keyValue[0], keyValue[1]);
+            }
+        }
+        log.debug(param.toString());
+
+        User user = new User();
+        user.setUserId(param.get("userId"));
+        user.setName(param.get("name"));
+        user.setEmail(param.get("email"));
+        user.setPassword(param.get("password"));
+
+        DataOutputStream dos = new DataOutputStream(out);
+        response302Header(dos, "/login.html");
     }
 
     private void response200Header( DataOutputStream dos, int lengthOfBodyContent) {
@@ -170,6 +165,16 @@ public class RequestHandler extends Thread {
             dos.writeBytes("Content-Type: text/html;charset=utf-8\r\n");
             dos.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
             dos.writeBytes("\r\n");
+        } catch (IOException e) {
+            log.error(e.getMessage());
+        }
+    }
+
+    private void response302Header(DataOutputStream dos, String location) {
+        try {
+            dos.writeBytes("HTTP/1.1 302 FOUND \r\n");
+            dos.writeBytes("Content-Type: text/html; charset=utf-8\r\n");
+            dos.writeBytes("Location: " + location + "\r\n");
         } catch (IOException e) {
             log.error(e.getMessage());
         }
