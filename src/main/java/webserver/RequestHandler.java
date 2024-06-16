@@ -26,55 +26,55 @@ public class RequestHandler extends Thread {
                 connection.getPort());
 
         try (InputStream in = connection.getInputStream(); OutputStream out = connection.getOutputStream()) {
-            BufferedReader bf = new BufferedReader(new InputStreamReader(in));
+            BufferedReader bf = new BufferedReader(new InputStreamReader(in, "euc-kr"));
             String line = bf.readLine();
 
             if (!"".equals(line) && line != null) {
                 DataOutputStream dos = new DataOutputStream(out);
-                // HTML 페이지 나타내기
-                if (line.matches(".*.html.*")) {
+                // 추가 : POST, GET 구분
+                if (line.startsWith("GET")) {
                     String url = IOUtils.urlData(line);
-
                     byte[] body = Files.readAllBytes(new File("./webapp" + url).toPath());
-                    response200Header(dos, body.length);
-                    responseBody(dos, body);
-                } else if (line.matches(".*.css.*")) {
-                    String url = IOUtils.urlData(line);
-
-                    byte[] body = Files.readAllBytes(new File("./webapp" + url).toPath());
-                    responseCssHeader(dos, body.length);
-                    responseBody(dos, body);
-                // create user
-                } else if (line.matches(".*/user/create.*")) {
-                    int result = DataUtils.createUser(bf);
-                    if (result == 1) {
-                        response302Header(dos, "/index.html");
-                    } else {
-                        log.debug("회원가입 시 문제 발생");
-                    }
-                // login user
-                } else if (line.matches(".*/user/login.*")) {
-                    boolean setCookie;
-                    String redirectUrl = "";
-                    int result = DataUtils.loginUser(bf);
-
-                    if (result == 1) {
-                        redirectUrl = "/index.html";
-                        setCookie = true;
-                    } else {
-                        redirectUrl = "/user/login_failed.html";
-                        setCookie = false;
-                    }
-                    response302Header(dos, redirectUrl, setCookie);
-                // list User
-                } else if (line.matches(".*/user/list.*")) {
-                    boolean isAuth = DataUtils.loginAuth(bf);
-                    if (isAuth) {
-                        byte[] body = DataUtils.getUserAll().getBytes();
+                    // HTML 페이지 나타내기
+                    if (line.matches(".*.html.*")) {
                         response200Header(dos, body.length);
                         responseBody(dos, body);
-                    } else {
-                        response302Header(dos, "/user/login.html");
+                    } else if (line.matches(".*.css.*")) {
+                        responseCssHeader(dos, body.length);
+                        responseBody(dos, body);
+                    } else if (line.matches(".*/user/list.*")) {
+                        boolean isAuth = DataUtils.loginAuth(bf);
+                        if (isAuth) {
+                            byte[] data = DataUtils.getUserAll().getBytes();
+                            response200Header(dos, data.length);
+                            responseBody(dos, data);
+                        } else {
+                            response302Header(dos, "/user/login.html");
+                        }
+                    }
+                } else if (line.startsWith("POST")) {
+                    // create user
+                    if (line.matches(".*/user/create.*")) {
+                        boolean result = DataUtils.createUser(bf);
+                        if (result) {
+                            response302Header(dos, "/index.html");
+                        } else {
+                            log.debug("회원가입 시 문제 발생");
+                        }
+                        // login user
+                    } else if (line.matches(".*/user/login.*")) {
+                        boolean setCookie;
+                        String redirectUrl = "";
+                        int result = DataUtils.loginUser(bf);
+
+                        if (result == 1) {
+                            redirectUrl = "/index.html";
+                            setCookie = true;
+                        } else {
+                            redirectUrl = "/user/login_failed.html";
+                            setCookie = false;
+                        }
+                        response302Header(dos, redirectUrl, setCookie);
                     }
                 }
             }

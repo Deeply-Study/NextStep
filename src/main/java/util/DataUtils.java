@@ -19,11 +19,11 @@ public class DataUtils {
      * @param br
      * @return User
      */
-    public static int createUser(BufferedReader br) {
+    public static boolean createUser(BufferedReader br) {
         int contentsLength = 0;
         try {
-            while (true) {
-                String read = br.readLine();
+            String read = null;
+            while ((read = br.readLine()) != null) {
                 if (read != null && read.contains("Content-Length")) {
                     contentsLength = Integer.parseInt(IOUtils.bodyData(read));
                 }
@@ -44,13 +44,13 @@ public class DataUtils {
 
                     log.debug(DataBase.findUserById(userId).toString());
 
-                    return 1;
+                    return true;
                 }
             }
         } catch (IOException e) {
             log.error(e.getMessage());
         }
-        return -1;
+        return false;
     }
 
     /**
@@ -62,8 +62,8 @@ public class DataUtils {
         try {
             int contentsLength = 0;
 
-            while (true) {
-                String read = br.readLine();
+            String read = null;
+            while ((read = br.readLine()) != null) {
                 if (read != null && read.contains("Content-Length")) {
                     contentsLength = Integer.parseInt(IOUtils.bodyData(read));
                 }
@@ -99,8 +99,8 @@ public class DataUtils {
     public static Boolean loginAuth(BufferedReader br) {
         String Cookies = "";
         try {
-            while (true) {
-                String read = br.readLine();
+            String read = null;
+            while ((read = br.readLine()) != null) {
                 if (read != null && read.contains("Cookie")) {
                     Cookies = IOUtils.bodyData(read);
                     Map<String, String> cookies = HttpRequestUtils.parseCookies(Cookies);
