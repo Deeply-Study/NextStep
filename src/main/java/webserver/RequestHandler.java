@@ -55,12 +55,8 @@ public class RequestHandler extends Thread {
                 } else if (line.startsWith("POST")) {
                     // create user
                     if (line.matches(".*/user/create.*")) {
-                        boolean result = DataUtils.createUser(bf);
-                        if (result) {
-                            response302Header(dos, "/index.html");
-                        } else {
-                            log.debug("회원가입 시 문제 발생");
-                        }
+                        DataUtils.createUser(bf);
+                        response302Header(dos, "/index.html");
                         // login user
                     } else if (line.matches(".*/user/login.*")) {
                         boolean setCookie;
