@@ -1,8 +1,12 @@
 package util;
 
 import static util.Constants.EQUAL_SYMBOL;
+import static util.Constants.HTTP_HEADER_FIELD_SEPARATOR;
 import static util.Constants.PARAM_SEPARATOR;
+import static util.Constants.QUERY_STRING_PREFIX;
 
+import java.io.BufferedReader;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -117,7 +121,7 @@ public class HttpRequestUtils {
     // 이하 직접 구현한 함수입니다.
 
     /**
-     * 요청 파라미터에서 key, value 분리
+     * 'key=value' 형식의 요청 파라미터에서 key, value 분리
      * @param requestParams
      *
      * @return key, value가 분리된 요청 파라미터
@@ -132,5 +136,67 @@ public class HttpRequestUtils {
         }
 
         return params;
+    }
+
+    /**
+     * StartLine 추출
+     * @param br
+     * @return Start Line
+     * @throws IOException
+     */
+    public String getStartLine(BufferedReader br) throws IOException {
+        return br.readLine();
+    }
+
+    /**
+     * StartLine에서 request method 추출
+     * @param startLine
+     * @return request method
+     */
+    public String getRequestMethod(String startLine) {
+        return startLine.split(" ")[0];
+    }
+
+    /**
+     * StartLine에서 Request target 추출
+     * @param startLine
+     * @return Request Target
+     */
+    public String getRequestTarget(String startLine) {
+        return startLine.split(" ")[1];
+    }
+
+    /**
+     * Header 추출
+     * @param br
+     * @return key, value가 분리된 http header
+     * @throws IOException
+     */
+    public Map<String, String> getHeader(BufferedReader br) throws IOException {
+        Map<String, String> header = new HashMap<>();
+        String line = "";
+
+        while(!(line = br.readLine()).isEmpty()) {
+            String[] splitedHeader = line.split(HTTP_HEADER_FIELD_SEPARATOR);
+            header.put(splitedHeader[0], splitedHeader[1]);
+        }
+
+        return header;
+    }
+
+    /**
+     * GET요청의 Request Tartget에서 Query String 추출
+     * @param requestUrl
+     * @return Query String
+     */
+    private String getQueryStringInHttpHeader(String requestUrl) {
+        int queryStringStartIdx = requestUrl.indexOf(QUERY_STRING_PREFIX) + 1;
+        StringBuilder sb = new StringBuilder();
+
+        if (queryStringStartIdx != 0) {
+            sb.append(requestUrl.substring(queryStringStartIdx));
+        }
+
+        return sb.toString();
     }
 }

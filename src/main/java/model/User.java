@@ -1,5 +1,6 @@
 package model;
 
+import db.DataBase;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -39,10 +40,25 @@ public class User {
         return "User [userId=" + userId + ", password=" + password + ", name=" + name + ", email=" + email + "]";
     }
 
-    public User signUp(Map<String, String> queryParams) {
+    public void signUp(Map<String, String> queryParams) {
         User user = new User(queryParams.get("userId"), queryParams.get("password"), queryParams.get("name"), queryParams.get("email"));
+        DataBase.addUser(user);
+    }
 
-        return user;
+    public boolean signIn(Map<String, String> signInParams) {
+        String userIdParam = signInParams.get("userId");
+        String passwordParam = signInParams.get("password");
+
+        User user = DataBase.findUserByUserId(userIdParam);
+        if (user == null) {
+            return false;
+        }
+
+        if (user.password.equals(passwordParam)) {
+            return true;
+        }
+
+        return false;
     }
 }
 

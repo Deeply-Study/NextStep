@@ -1,11 +1,11 @@
 package webserver;
 
 import static util.Constants.CONTENTE_LENGTH;
-import static util.Constants.HTTP_HEADER_FIELD_SEPARATOR;
-import static util.Constants.QUERY_STRING_PREFIX;
+import static util.Constants.SIGN_IN_PATH;
 import static util.Constants.SIGN_UP_PATH;
 import static util.Constants.WEB_ROOT;
 
+import db.DataBase;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -16,7 +16,10 @@ import java.io.OutputStream;
 import java.net.Socket;
 
 import java.nio.file.Files;
-import java.util.HashMap;
+import java.security.Key;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import model.User;
 import org.slf4j.Logger;
@@ -46,12 +49,12 @@ public class RequestHandler extends Thread {
             DataOutputStream dos = new DataOutputStream(out);
 
             // HTTP Start Line
-            String startLine = getStartLine(br);
-            String requestMethod = getRequestMethod(startLine);
-            String requestTarget = getRequestTarget(startLine);
+            String startLine = httpRequestUtils.getStartLine(br);
+            String requestMethod = httpRequestUtils.getRequestMethod(startLine);
+            String requestTarget = httpRequestUtils.getRequestTarget(startLine);
 
             // HTTP Header
-            Map<String, String> httpHeader = getHeader(br);
+            Map<String, String> httpHeader = httpRequestUtils.getHeader(br);
 
             // file
             String targetPath = WEB_ROOT + requestTarget;
@@ -64,7 +67,20 @@ public class RequestHandler extends Thread {
                     user.signUp(httpRequestUtils.parseRequestParams(httpBody));
 
                     requestTarget = "/index.html";
+
                     response302Header(dos, requestTarget);
+                }
+
+                if (requestTarget.startsWith(SIGN_IN_PATH)) {
+                    boolean signInSuccess = user.signIn(httpRequestUtils.parseRequestParams(httpBody));
+
+                    if (signInSuccess) {
+                        requestTarget = "/index.html";
+                        response302SignInSuccessHeader(dos, requestTarget);
+                    } else {
+                        requestTarget = "/user/login_failed.html";
+                        response302SignInFailureHeader(dos, requestTarget);
+                    }
                 }
             }
 
@@ -77,61 +93,26 @@ public class RequestHandler extends Thread {
         }
     }
 
-    /**
-     * http request message에서 StartLine 추출
-     * @param br
-     * @return Start Line
-     * @throws IOException
-     */
-    private String getStartLine(BufferedReader br) throws IOException {
-        return br.readLine();
-    }
-
-    private String getRequestMethod(String startLine) {
-        return startLine.split(" ")[0];
-    }
-
-    /**
-     *  http request message의 StartLine에서 Request target 추출
-     * @param startLine
-     * @return Request Target
-     */
-    private String getRequestTarget(String startLine) {
-        return startLine.split(" ")[1];
-    }
-
-    /**
-     * http request message의 header 추출
-     * @param br
-     * @return key, value가 분리된 http header
-     * @throws IOException
-     */
-    private Map<String, String> getHeader(BufferedReader br) throws IOException {
-        Map<String, String> header = new HashMap<>();
-        String line = "";
-
-        while(!(line = br.readLine()).isEmpty()) {
-            String[] splitedHeader = line.split(HTTP_HEADER_FIELD_SEPARATOR);
-            header.put(splitedHeader[0], splitedHeader[1]);
+    private void response302SignInSuccessHeader(DataOutputStream dos, String url) {
+        try {
+            dos.writeBytes("HTTP/1.1 302 Found \r\n");
+            dos.writeBytes("Location: " + url + " \r\n");
+            dos.writeBytes("Set-Cookie: logined=true; path=/ \r\n");
+            dos.writeBytes("\r\n");
+        } catch (IOException e) {
+            log.error(e.getMessage());
         }
-
-        return header;
     }
 
-    /**
-     * GET요청의 Request Tartget에서 Query String 추출
-     * @param requestUrl
-     * @return Query String
-     */
-    private String getQueryStringInHttpHeader(String requestUrl) {
-        int queryStringStartIdx = requestUrl.indexOf(QUERY_STRING_PREFIX) + 1;
-        StringBuilder sb = new StringBuilder();
-
-        if (queryStringStartIdx != 0) {
-            sb.append(requestUrl.substring(queryStringStartIdx));
+    private void response302SignInFailureHeader(DataOutputStream dos, String url) {
+        try {
+            dos.writeBytes("HTTP/1.1 302 Found \r\n");
+            dos.writeBytes("Location: " + url + " \r\n");
+            dos.writeBytes("Set-Cookie: logined=false; path=/ \r\n");
+            dos.writeBytes("\r\n");
+        } catch (IOException e) {
+            log.error(e.getMessage());
         }
-
-        return sb.toString();
     }
 
     private void response302Header(DataOutputStream dos, String url) {
