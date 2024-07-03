@@ -18,52 +18,6 @@ public class DataUtils {
     private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
 
     /**
-     * User 모델 생성
-     * @param body
-     * @return User
-     */
-    public static void createUser(String body) throws IOException {
-        Map<String, String> query = HttpRequestUtils.parseQueryString(body);
-        User user = new User(query.get("userId"), query.get("password"), query.get("name"), query.get("email"));
-
-        DataBase.addUser(user);
-    }
-
-    /**
-     * User 로그인
-     * @param body
-     * @return Integer
-     */
-    public static Integer loginUser(String body) throws IOException {
-        Map<String, String> query = HttpRequestUtils.parseQueryString(body);
-        User user = DataBase.findUserById(query.get("userId"));
-        if (user != null) {
-            if (query.get("password").equals(user.getPassword())) {
-                return 1;
-            }
-            return -2;
-        }
-        return -1;
-    }
-
-    /**
-     * 로그인 상태인지 확인하기
-     * @param br
-     * @return
-     */
-    public static Boolean loginAuth(BufferedReader br) throws IOException {
-        String Cookies = IOUtils.bufferGetHeader(br, "Cookie");
-        if (Cookies != null && !"".equals(Cookies)) {
-            Map<String, String> cookies = HttpRequestUtils.parseCookies(Cookies);
-
-            if (!cookies.isEmpty() && "true".equals(cookies.get("logined"))) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
      * 모든 User 출력하기
      * @return
      */

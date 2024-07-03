@@ -2,15 +2,16 @@ package webserver;
 
 import java.io.*;
 import java.net.Socket;
-import java.nio.file.Files;
-import java.util.StringTokenizer;
 
+import controller.Controller;
+import controller.CreateUserController;
+import controller.LoginUserController;
+import http.HttpRequest;
+import http.HttpResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.DataUtils;
 import util.IOUtils;
-
-import javax.xml.crypto.Data;
 
 public class RequestHandler extends Thread {
     private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
@@ -27,51 +28,28 @@ public class RequestHandler extends Thread {
 
         try (InputStream in = connection.getInputStream(); OutputStream out = connection.getOutputStream()) {
             BufferedReader bf = new BufferedReader(new InputStreamReader(in, "euc-kr"));
+            HttpRequest httpRequest = new HttpRequest(in);
             HttpResponse httpResponse = new HttpResponse(out);
-            String line = bf.readLine();
-            String status = "";
-            String url = "";
             String ext = "";
-            boolean isAuth;
 
-            if (!"".equals(line) && line != null) {
-                status = IOUtils.urlData(line)[0];
-                url = IOUtils.urlData(line)[1];
-                ext = IOUtils.extData(url);
-            }
+            ext = IOUtils.extData(httpRequest.getPath());
+            log.debug("ext : {}", ext);
 
-            // 추가 : POST, GET 구분
-            if ("GET".equals(status)) {
-                if ("/user/list.html".equals(url)) {
-                    isAuth = DataUtils.loginAuth(bf);
-                    if (isAuth) {
-                        byte[] data = DataUtils.getUserAll().getBytes();
-                        httpResponse.response200Header(data.length, "html");
-                        httpResponse.responseBody(data);
-                    } else {
-                        httpResponse.sendRedirect("/user/login.html");
-                    }
-                } else if (ext.equals("html") || ext.equals("css") || ext.equals("js") || ext.equals("ico") || ext.equals("ttf")) {
-                    httpResponse.responseUrlResource(url, ext);
+            if ("/user/list.html".equals(httpRequest.getPath())) {
+                String auth = httpRequest.getHeader("logined");
+                if ("true".equals(auth)) {
+                    byte[] data = DataUtils.getUserAll().getBytes();
+                    httpResponse.response200Header(data.length, "html");
+                    httpResponse.responseBody(data);
+                } else {
+                    httpResponse.sendRedirect("/user/login.html");
                 }
-            }
-            else if ("POST".equals(status)) {
-                if ("/user/create".equals(url)) { // create user
-                    DataUtils.createUser(IOUtils.bufferGetBody(bf));
-                    httpResponse.sendRedirect("/index.html");
-                } else if ("/user/login".equals(url)) { // login
-                    String redirectUrl = "";
-                    int result = DataUtils.loginUser(IOUtils.bufferGetBody(bf));
-
-                    if (result == 1) {
-                        redirectUrl = "/index.html";
-                        httpResponse.addResponseHeader("Cookie", String.valueOf(true));
-                    } else {
-                        redirectUrl = "/user/login_failed.html";
-                        httpResponse.addResponseHeader("Cookie", String.valueOf(false));
-                    }
-                    httpResponse.sendRedirect(redirectUrl);
-                }
+            } else if (ext.equals("html") || ext.equals("css") || ext.equals("js") || ext.equals("ico") || ext.equals("ttf")) {
+                httpResponse.responseUrlResource(httpRequest.getPath(), ext);
+            } else if ("/user/create".equals(httpRequest.getPath())) { // create user
+                new CreateUserController().service(httpRequest, httpResponse);
+            } else if ("/user/login".equals(httpRequest.getPath())) { // login
+                new LoginUserController().service(httpRequest, httpResponse);
             }
 
             httpResponse.responseUrlResource("/index.html", HeaderType.HTML.getType());
