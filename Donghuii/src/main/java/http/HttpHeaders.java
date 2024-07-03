@@ -5,6 +5,10 @@ import java.util.Map;
 
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * 트레이드 오프란
+ * 하나를 얻으면 다른 하나를 잃을 수 있는 관계
+ */
 @Slf4j
 public class HttpHeaders {
 
