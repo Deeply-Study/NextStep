@@ -30,12 +30,12 @@ public class HttpRequest {
                 requestLine.setBodyParams(bf);
                 params = requestLine.getParams();
             } else {
-                setHeaders(bf, "Cookie");
+                addRequestHeaders(bf, "Cookie");
             }
         }
     }
 
-    public void setHeaders(BufferedReader br, String header) throws IOException {
+    public void addRequestHeaders(BufferedReader br, String header) throws IOException {
         String response = null;
         String read = null;
         while ((read = br.readLine()) != null) {
@@ -63,4 +63,6 @@ public class HttpRequest {
     public String getPath() {
         return requestLine.getPath();
     }
+
+    public String getExt() { return requestLine.getExt(); }
 }

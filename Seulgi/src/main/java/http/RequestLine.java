@@ -16,12 +16,19 @@ public class RequestLine {
 
     private String method;
     private String path;
+    private String ext;
     private Map<String, String> params = new HashMap<>();
 
     public RequestLine(String line) {
         String[] tokens = line.split(" ");
         method = tokens[0];
         path = tokens[1];
+        ext = "";
+
+        String[] url = path.split("[.]");
+        if (url.length > 1) {
+            ext = url[url.length-1];
+        }
     }
 
     public void setBodyParams(BufferedReader br) throws IOException {
@@ -48,6 +55,8 @@ public class RequestLine {
     public String getPath() {
         return path;
     }
+
+    public String getExt() { return ext; }
 
     public Map<String, String> getParams() {
         return params;

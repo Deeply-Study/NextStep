@@ -13,10 +13,10 @@ public class LoginUserController implements Controller{
 
         if (user != null && httpRequest.getParameter("password").equals(user.getPassword())) {
             redirectUrl = "/index.html";
-            httpResponse.addResponseHeader("Cookie", String.valueOf(true));
+            httpResponse.addResponseHeader("Set-Cookie", "logined=" + true);
         } else {
             redirectUrl = "/user/login_failed.html";
-            httpResponse.addResponseHeader("Cookie", String.valueOf(false));
+            httpResponse.addResponseHeader("Set-Cookie", "logined=" + false);
         }
         httpResponse.sendRedirect(redirectUrl);
     }

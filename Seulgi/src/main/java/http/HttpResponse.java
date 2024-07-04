@@ -8,6 +8,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 public class HttpResponse {
     private static final Logger log = LoggerFactory.getLogger(HttpResponse.class);
@@ -40,31 +41,23 @@ public class HttpResponse {
     }
 
     public void sendRedirect(String url) {
-        if ("true".equals(headers.get("Cookie"))) {
-            response302Header(url, true);
-        } else {
-            response302Header(url);
-        }
-    }
-
-    private void response302Header(String url) {
         try {
             dos.writeBytes("HTTP/1.1 302 Found \r\n");
             dos.writeBytes("Content-Type: text/html;charset=utf-8\r\n");
             dos.writeBytes("Location: " + url + "\r\n");
+            processHeaders();
             dos.writeBytes("\r\n");
         } catch (IOException e) {
             log.error(e.getMessage());
         }
     }
 
-    private void response302Header(String url, boolean isLogined) {
+    private void processHeaders() {
         try {
-            dos.writeBytes("HTTP/1.1 302 Found \r\n");
-            dos.writeBytes("Content-Type: text/html;charset=utf-8\r\n");
-            dos.writeBytes("Location: " + url + "\r\n");
-            dos.writeBytes("Set-Cookie: logined=" + isLogined + "\r\n");
-            dos.writeBytes("\r\n");
+            Set<String> keys = headers.keySet();
+            for (String key : keys) {
+                dos.writeBytes(key + ":" + headers.get(key) + "\r\n");
+            }
         } catch (IOException e) {
             log.error(e.getMessage());
         }
@@ -77,9 +70,5 @@ public class HttpResponse {
         } catch (IOException e) {
             log.error(e.getMessage());
         }
-    }
-
-    public DataOutputStream getDos() {
-        return dos;
     }
 }
