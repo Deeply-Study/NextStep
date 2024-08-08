@@ -58,8 +58,8 @@ public class RequestHandler extends Thread {
 	private void getPage(String reqPath) throws IOException {
 		switch (reqPath) {
 			case "/index.html" -> controllers.get("mainPage").getPage();
-			case "/user/form.html" -> controllers.get("login").getPage();
-			case "/user/login.html" -> controllers.get("register").getPage();
+			case "/user/login.html" -> controllers.get("login").getPage();
+			case "/user/form.html" -> controllers.get("register").getPage();
 			case "/user/login_failed.html" -> ((LoginController) controllers.get("login")).getLoginFailure();
 			case "/user/list" -> controllers.get("userList").getPage();
 			default -> {

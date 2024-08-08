@@ -4,7 +4,7 @@ public enum HttpType {
 	GET,
 	POST;
 	
-	public boolean isPost(HttpType httpType) {
-		return httpType == HttpType.POST;
+	public boolean isPost() {
+		return this == HttpType.POST;
 	}
 }

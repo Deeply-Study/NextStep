@@ -21,7 +21,7 @@ public class HttpRequest {
 	private String reqPath;
 	private Map<String, String> headers;
 	private Map<String, String> params;
-	
+
 	public HttpRequest(InputStream in) {
 		this.br = new BufferedReader(new InputStreamReader(in));
 		this.headers = new HashMap<String, String>();
@@ -51,6 +51,10 @@ public class HttpRequest {
 	
 	public Map<String, String> getHeaders() {
 		return headers;
+	}
+
+	public Map<String, String> getParams() {
+		return params;
 	}
 	
 	public String getHeader(String key) {
