@@ -52,11 +52,13 @@ public class UserListController implements Controllable {
     	if (httpRequest.getHeaders().containsKey("Cookie")) {
         	cookies = HttpRequestUtils.parseCookies(httpRequest.getHeader("Cookie"));
     	}
-    	boolean loggedIn = Boolean.parseBoolean(cookies.get("logined"));
+		boolean loggedIn = false;
+		if (cookies != null)
+			loggedIn = Boolean.parseBoolean(cookies.get("logined"));
     	return loggedIn;
     }
 	
-	private byte[] getAllUsers() throws IOException {
+	 byte[] getAllUsers() throws IOException {
 		BufferedReader fileReader = new BufferedReader(new FileReader("./webapp/user/list.html")); 
 		StringBuilder fileContent = new StringBuilder();
 		String cur = null;
@@ -73,14 +75,14 @@ public class UserListController implements Controllable {
 		return fileContent.toString().getBytes(Charset.forName("UTF-8"));
 	}
 
-	private void addAllUsersToList(BufferedReader fileReader, StringBuilder fileContent)
+	 private void addAllUsersToList(BufferedReader fileReader, StringBuilder fileContent)
 			throws IOException, UnsupportedEncodingException {
 		Object[] users = DataBase.findAll().toArray();
 		for (int i = 0; i < users.length; i++) {
 			User user = (User) users[i];
 			log.debug("User {} in the list", user.getUserId());
 			fileContent.append("<tr>\r\n");
-			fileContent.append("                    <th scope=\"row\">" + (i + 3) + "</th> ");
+			fileContent.append("<th scope=\"row\">" + (i + 3) + "</th> ");
 			fileContent.append("<td>" + URLDecoder.decode(user.getUserId(), "UTF-8") + "</td> ");
 			fileContent.append("<td>" + URLDecoder.decode(user.getName(), "UTF-8") + "</td> ");
 			fileContent.append("<td>" + URLDecoder.decode(user.getEmail(), "UTF-8") + "</td> ");

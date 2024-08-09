@@ -33,12 +33,12 @@ public class LoginController implements Controllable {
     	responseHandler.responseBody(body);
 	}
 
-	public void handleLogin() throws IOException {
+	public boolean handleLogin() throws IOException {
     	if (checkLogin()) {
-			handleLoginSuccess();
+			return handleLoginSuccess();
 		}
 		else {
-			handleLoginFailure();
+			return handleLoginFailure();
 		}
 	}		
 	
@@ -49,14 +49,16 @@ public class LoginController implements Controllable {
     	responseHandler.responseBody(body);
 	}
 	
-    private void handleLoginSuccess() throws IOException {
+    private boolean handleLoginSuccess() throws IOException {
     	responseHandler.responseLoginSuccessHeader(0);
     	responseHandler.responseBody(new byte[0]);
+		return true;
     }
     
-    private void handleLoginFailure() throws IOException {
+    private boolean handleLoginFailure() throws IOException {
     	responseHandler.response302Header("/user/login_failed.html");
     	responseHandler.responseBody(new byte[0]);
+		return false;
     }
     
     private boolean checkLogin() {

@@ -70,7 +70,7 @@ public class HttpRequest {
 		while (!(cur = br.readLine()).isEmpty()) {
 			log.debug("Header: {}", cur);
 			Pair curHeader = HttpRequestUtils.parseHeader(cur);
-			headers.put(curHeader.getKey(), curHeader.getValue());
+			if (curHeader != null) headers.put(curHeader.getKey(), curHeader.getValue());
 		}
 		
 		if (reqType == HttpType.POST) {

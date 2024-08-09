@@ -33,16 +33,18 @@ public class RegisterController implements Controllable {
     	responseHandler.responseBody(body);
 	}
 
-	public void handleRegister() throws IOException {
-    	register();
+	public User handleRegister() throws IOException {
+    	User addedUser = register();
     	responseHandler.response302Header("/index.html");
+		return addedUser;
 	}
     
-	private void register() throws IOException {
+	private User register() throws IOException {
     	User user = new User(httpRequest.getParam("userId"), httpRequest.getParam("password"), 
     			httpRequest.getParam("name"), httpRequest.getParam("email"));
     	DataBase.addUser(user);
     	log.debug("Added user: {}", user.getUserId());
+		return user;
     }
 
 }

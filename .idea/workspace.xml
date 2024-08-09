@@ -5,18 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="1bde903b-1fd4-499d-ac39-55ebf4402e2c" name="Changes" comment="이클립스에서 인텔리제이로 이동">
-      <change afterPath="$PROJECT_DIR$/.idea/gradle.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/jarRepositories.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Gayeon/build.gradle" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Gayeon/gradle/wrapper/gradle-wrapper.jar" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Gayeon/gradle/wrapper/gradle-wrapper.properties" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Gayeon/gradlew" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Gayeon/gradlew.bat" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Gayeon/settings.gradle" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/NextSetp_Real.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/NextSetp_Real.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Gayeon/pom.xml" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -168,6 +158,7 @@
       <workItem from="1719145248649" duration="2000" />
       <workItem from="1722663869224" duration="1817000" />
       <workItem from="1722666516825" duration="29000" />
+      <workItem from="1723180757904" duration="136000" />
     </task>
     <task id="LOCAL-00001" summary="이클립스에서 인텔리제이로 이동">
       <created>1722664429496</created>
